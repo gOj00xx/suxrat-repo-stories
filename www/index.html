@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>SUXRAT - TERMUX API</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #0a0f1e, #1a1f2e);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+        
+        .container {
+            max-width: 400px;
+            width: 100%;
+            background: rgba(20, 25, 35, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 32px;
+            padding: 24px;
+            border: 1px solid #ff0000;
+            box-shadow: 0 20px 60px rgba(255,0,0,0.3);
+        }
+        
+        /* LOGIN SCREEN */
+        .login-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .login-title {
+            color: #ff0000;
+            font-size: 2.5em;
+            font-weight: 900;
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px red;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+        
+        .login-subtitle {
+            color: #ff6666;
+            font-size: 1em;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .password-input {
+            width: 100%;
+            padding: 18px 20px;
+            font-size: 1.2em;
+            background: #1a1a1a;
+            border: 2px solid #ff0000;
+            border-radius: 50px;
+            color: #00ff00;
+            margin-bottom: 20px;
+            outline: none;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+        
+        .password-input:focus {
+            border-color: #ff4444;
+            box-shadow: 0 0 20px red;
+        }
+        
+        .btn-login {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(145deg, #ff0000, #990000);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            font-size: 1.3em;
+            font-weight: 800;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(255,0,0,0.5);
+            margin-bottom: 20px;
+        }
+        
+        .btn-login:active {
+            transform: scale(0.97);
+        }
+        
+        .error-msg {
+            color: #ff8888;
+            font-size: 0.9em;
+            text-align: center;
+            min-height: 25px;
+        }
+        
+        /* MAIN MENU (setelah login) */
+        .main-menu {
+            display: none;
+            width: 100%;
+        }
+        
+        .menu-title {
+            color: #ff0000;
+            font-size: 2em;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .menu-subtitle {
+            color: #ff6666;
+            font-size: 0.9em;
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 15px;
+        }
+        
+        .menu-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .menu-item {
+            background: #1a1a1a;
+            border: 2px solid #333;
+            border-radius: 20px;
+            padding: 18px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .menu-item:active {
+            transform: scale(0.98);
+            border-color: #ff0000;
+        }
+        
+        .menu-icon {
+            width: 50px;
+            height: 50px;
+            background: #2a2a2a;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 26px;
+        }
+        
+        .menu-info {
+            flex: 1;
+        }
+        
+        .menu-name {
+            color: white;
+            font-weight: 700;
+            font-size: 1.2em;
+        }
+        
+        .menu-desc {
+            color: #888;
+            font-size: 0.8em;
+            margin-top: 3px;
+        }
+        
+        .menu-status {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #ff4444;
+            margin-left: 10px;
+            box-shadow: 0 0 10px #ff4444;
+        }
+        
+        .menu-status.active {
+            background: #44ff44;
+            box-shadow: 0 0 15px #44ff44;
+        }
+        
+        /* Camera options (popup) */
+        .camera-options {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .camera-box {
+            background: #1a1a1a;
+            border-radius: 30px;
+            padding: 30px;
+            max-width: 350px;
+            width: 100%;
+            border: 2px solid #ff0000;
+        }
+        
+        .camera-title {
+            color: #ff0000;
+            font-size: 1.5em;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .camera-btn {
+            width: 100%;
+            padding: 18px;
+            margin-bottom: 12px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .btn-front {
+            background: linear-gradient(145deg, #00ff00, #00aa00);
+            color: black;
+        }
+        
+        .btn-back {
+            background: linear-gradient(145deg, #0000ff, #0000aa);
+            color: white;
+        }
+        
+        .btn-cancel {
+            background: #333;
+            color: white;
+        }
+        
+        /* Log console */
+        .log-console {
+            background: #0a0f1a;
+            border-radius: 16px;
+            padding: 15px;
+            height: 150px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8em;
+            color: #00ff00;
+            margin-top: 20px;
+            border: 1px solid #333;
+        }
+        
+        .log-entry {
+            padding: 4px 0;
+            border-bottom: 1px solid #222;
+            word-break: break-all;
+        }
+        
+        .footer {
+            text-align: center;
+            color: #444;
+            font-size: 0.7em;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- LOGIN SCREEN -->
+        <div class="login-screen" id="loginScreen">
+            <div class="login-title">SUXRAT</div>
+            <div class="login-subtitle">ENTER PASSWORD</div>
+            
+            <input type="password" class="password-input" id="passwordInput" placeholder="********" autofocus>
+            <button class="btn-login" id="loginBtn" onclick="checkPassword()">ENTER</button>
+            
+            <div class="error-msg" id="loginError"></div>
+        </div>
+        
+        <!-- MAIN MENU (setelah login) -->
+        <div class="main-menu" id="mainMenu">
+            <div class="menu-title">TESTING SUXRAT</div>
+            <div class="menu-subtitle">TERMUX API MODE</div>
+            
+            <div class="menu-grid">
+                <!-- Flashlight Option -->
+                <div class="menu-item" onclick="toggleFlashlight()">
+                    <div class="menu-icon">🔦</div>
+                    <div class="menu-info">
+                        <div class="menu-name">Flashlight</div>
+                        <div class="menu-desc">Kedip 0.1 detik (termux-torch)</div>
+                    </div>
+                    <div class="menu-status" id="flashlightStatus"></div>
+                </div>
+                
+                <!-- Camera Option -->
+                <div class="menu-item" onclick="showCameraOptions()">
+                    <div class="menu-icon">📸</div>
+                    <div class="menu-info">
+                        <div class="menu-name">Screenshot</div>
+                        <div class="menu-desc">Ambil foto (termux-camera-photo)</div>
+                    </div>
+                </div>
+                
+                <!-- WiFi Scan Option -->
+                <div class="menu-item" onclick="scanWiFi()">
+                    <div class="menu-icon">📡</div>
+                    <div class="menu-info">
+                        <div class="menu-name">Scan WiFi</div>
+                        <div class="menu-desc">Scan jaringan (termux-wifi-scaninfo)</div>
+                    </div>
+                </div>
+                
+                <!-- WiFi List Option -->
+                <div class="menu-item" onclick="getWiFiList()">
+                    <div class="menu-icon">📋</div>
+                    <div class="menu-info">
+                        <div class="menu-name">WiFi List</div>
+                        <div class="menu-desc">Jaringan tersimpan</div>
+                    </div>
+                </div>
+                
+                <!-- Test Connection -->
+                <div class="menu-item" onclick="testTermuxAPI()">
+                    <div class="menu-icon">🔧</div>
+                    <div class="menu-info">
+                        <div class="menu-name">Test API</div>
+                        <div class="menu-desc">Cek koneksi Termux API</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Log Console -->
+            <div class="log-console" id="logConsole">
+                <div class="log-entry">[SYSTEM] SUXRAT v5.1 - Termux API</div>
+                <div class="log-entry">[SYSTEM] Masukkan password "Rat"</div>
+            </div>
+            
+            <div class="footer">s3cret_proj3ct • SUXRAT</div>
+        </div>
+    </div>
+    
+    <!-- CAMERA OPTIONS POPUP -->
+    <div class="camera-options" id="cameraOptions">
+        <div class="camera-box">
+            <div class="camera-title">PILIH KAMERA</div>
+            <button class="camera-btn btn-front" onclick="takePhoto('front')">KAMERA DEPAN</button>
+            <button class="camera-btn btn-back" onclick="takePhoto('back')">KAMERA BELAKANG</button>
+            <button class="camera-btn btn-cancel" onclick="hideCameraOptions()">BATAL</button>
+        </div>
+    </div>
+    
+    <script>
+        // ============================================================
+        // GLOBAL VARIABLES
+        // ============================================================
+        const CORRECT_PASSWORD = "Rat";
+        let isLoggedIn = false;
+        let flashlightActive = false;
+        let flashlightInterval = null;
+        let wifiScanInterval = null;
+        
+        // ============================================================
+        // DOM ELEMENTS
+        // ============================================================
+        const loginScreen = document.getElementById('loginScreen');
+        const mainMenu = document.getElementById('mainMenu');
+        const passwordInput = document.getElementById('passwordInput');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginError = document.getElementById('loginError');
+        const logConsole = document.getElementById('logConsole');
+        const flashlightStatus = document.getElementById('flashlightStatus');
+        const cameraOptions = document.getElementById('cameraOptions');
+        
+        // ============================================================
+        // LOG FUNCTION
+        // ============================================================
+        function addLog(message) {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            const time = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            entry.textContent = '[' + time + '] ' + message;
+            logConsole.appendChild(entry);
+            logConsole.scrollTop = logConsole.scrollHeight;
+            
+            // Keep last 30 logs
+            while (logConsole.children.length > 30) {
+                logConsole.removeChild(logConsole.firstChild);
+            }
+        }
+        
+        // ============================================================
+        // CHECK PASSWORD (FIX - PAKE BUTTON DAN ENTER)
+        // ============================================================
+        function checkPassword() {
+            const password = passwordInput.value.trim();
+            
+            if (password === CORRECT_PASSWORD) {
+                // Password benar
+                loginError.style.color = '#44ff44';
+                loginError.innerHTML = '✅ PASSWORD BENAR';
+                
+                addLog('✅ Login berhasil');
+                addLog('🔓 Selamat datang di SUXRAT');
+                
+                setTimeout(() => {
+                    loginScreen.style.display = 'none';
+                    mainMenu.style.display = 'block';
+                    isLoggedIn = true;
+                    
+                    // Test Termux API
+                    testTermuxAPI();
+                }, 500);
+            } else {
+                // Password salah
+                loginError.style.color = '#ff8888';
+                loginError.innerHTML = '❌ PASSWORD SALAH';
+                passwordInput.value = '';
+                passwordInput.focus();
+                
+                // Efek shake
+                passwordInput.style.transform = 'translateX(5px)';
+                setTimeout(() => passwordInput.style.transform = 'translateX(-5px)', 50);
+                setTimeout(() => passwordInput.style.transform = 'translateX(5px)', 100);
+                setTimeout(() => passwordInput.style.transform = 'translateX(0)', 150);
+            }
+        }
+        
+        // ============================================================
+        // ENTER KEY HANDLER (FIX)
+        // ============================================================
+        passwordInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                checkPassword();
+            }
+        });
+        
+        // ============================================================
+        // TEST TERMUX API CONNECTION
+        // ============================================================
+        function testTermuxAPI() {
+            addLog('🔧 Mengecek Termux API...');
+            
+            // Coba panggil termux-info
+            if (window.Termux && window.Termux.call) {
+                window.Termux.call('termux-info', [], function(result) {
+                    if (result && result.includes('TERMUX_APK')) {
+                        addLog('✅ Termux API terdeteksi');
+                    } else {
+                        addLog('❌ Termux API tidak merespon');
+                    }
+                });
+            } else {
+                addLog('⚠️ Menggunakan mode simulasi (Termux API tidak tersedia)');
+            }
+        }
+        
+        // ============================================================
+        // FLASHLIGHT CONTROL (TERMUX-TORCH)
+        // ============================================================
+        function toggleFlashlight() {
+            if (!isLoggedIn) return;
+            
+            if (flashlightActive) {
+                // Matikan flashlight
+                if (flashlightInterval) {
+                    clearInterval(flashlightInterval);
+                    flashlightInterval = null;
+                }
+                
+                // Matikan torch
+                if (window.Termux && window.Termux.call) {
+                    window.Termux.call('termux-torch off', [], function() {
+                        addLog('🔦 Flashlight dimatikan');
+                    });
+                } else {
+                    // Fallback
+                    addLog('🔦 Flashlight dimatikan (simulasi)');
+                }
+                
+                flashlightActive = false;
+                flashlightStatus.className = 'menu-status';
+                
+            } else {
+                // Nyalakan flashlight kedip 0.1 detik
+                let isOn = false;
+                
+                // Fungsi kedip pake termux-torch
+                const blink = function() {
+                    isOn = !isOn;
+                    
+                    if (window.Termux && window.Termux.call) {
+                        const cmd = isOn ? 'termux-torch on' : 'termux-torch off';
+                        window.Termux.call(cmd, [], function() {});
+                    }
+                };
+                
+                // Jalankan interval 0.1 detik
+                blink(); // Langsung nyala
+                flashlightInterval = setInterval(blink, 100);
+                
+                flashlightActive = true;
+                flashlightStatus.className = 'menu-status active';
+                addLog('🔦 Flashlight aktif (kedip 0.1 detik)');
+            }
+        }
+        
+        // ============================================================
+        // CAMERA OPTIONS
+        // ============================================================
+        function showCameraOptions() {
+            if (!isLoggedIn) return;
+            cameraOptions.style.display = 'flex';
+        }
+        
+        function hideCameraOptions() {
+            cameraOptions.style.display = 'none';
+        }
+        
+        function takePhoto(cameraType) {
+            hideCameraOptions();
+            
+            const cameraId = (cameraType === 'front') ? '1' : '0';
+            const timestamp = Date.now();
+            const filename = `/storage/emulated/0/SUXRAT_${cameraType}_${timestamp}.jpg`;
+            
+            addLog(`📸 Mengambil foto kamera ${cameraType}...`);
+            
+            // Pake termux-camera-photo
+            if (window.Termux && window.Termux.call) {
+                window.Termux.call(`termux-camera-photo -c ${cameraId} ${filename}`, [], function(result) {
+                    if (result && !result.includes('ERROR')) {
+                        addLog(`✅ Foto tersimpan di: ${filename}`);
+                        
+                        // Notifikasi
+                        window.Termux.call(`termux-notification --title "SUXRAT" --content "Foto tersimpan"`, [], function() {});
+                    } else {
+                        addLog(`❌ Gagal mengambil foto`);
+                    }
+                });
+            } else {
+                // Simulasi
+                setTimeout(() => {
+                    addLog(`✅ Foto tersimpan di: ${filename} (SIMULASI)`);
+                }, 2000);
+            }
+        }
+        
+        // ============================================================
+        // SCAN WIFI (TERMUX-WIFI-SCANINFO)
+        // ============================================================
+        function scanWiFi() {
+            if (!isLoggedIn) return;
+            
+            addLog('📡 Scanning WiFi...');
+            
+            if (window.Termux && window.Termux.call) {
+                window.Termux.call('termux-wifi-scaninfo', [], function(result) {
+                    try {
+                        const networks = JSON.parse(result);
+                        if (networks && networks.length > 0) {
+                            addLog(`📡 Ditemukan ${networks.length} jaringan:`);
+                            networks.slice(0, 5).forEach(net => {
+                                const ssid = net.ssid || 'Hidden';
+                                const level = net.level || 0;
+                                const freq = net.frequency || 0;
+                                addLog(`   ${ssid} (${level} dBm) - ${freq}MHz`);
+                            });
+                        } else {
+                            addLog(`📡 Tidak ada jaringan ditemukan`);
+                        }
+                    } catch(e) {
+                        addLog(`📡 Hasil scan: ${result.substring(0, 100)}`);
+                    }
+                });
+            } else {
+                // Simulasi
+                setTimeout(() => {
+                    addLog(`📡 Ditemukan 3 jaringan:`);
+                    addLog(`   WiFi_Tetangga (-45 dBm)`);
+                    addLog(`   IndiHome_2.4G (-62 dBm)`);
+                    addLog(`   Kantor_Cepat (-78 dBm)`);
+                }, 1000);
+            }
+            
+            // Scan berulang
+            if (wifiScanInterval) {
+                clearInterval(wifiScanInterval);
+                wifiScanInterval = null;
+                addLog('🔄 Scan berulang dihentikan');
+            } else {
+                wifiScanInterval = setInterval(() => {
+                    addLog('📡 Scan otomatis...');
+                    if (window.Termux && window.Termux.call) {
+                        window.Termux.call('termux-wifi-scaninfo', [], function(result) {});
+                    }
+                }, 10000);
+                addLog('🔄 Scan berulang setiap 10 detik');
+            }
+        }
+        
+        // ============================================================
+        // GET WIFI LIST (HARUS ROOT ATAU AKSES FILE)
+        // ============================================================
+        function getWiFiList() {
+            if (!isLoggedIn) return;
+            
+            addLog('📋 Mengambil daftar WiFi tersimpan...');
+            
+            // Di Android, perlu root untuk akses wpa_supplicant.conf
+            // Alternatif: pake termux-wifi-connectioninfo untuk wifi yang sedang connect
+            
+            if (window.Termux && window.Termux.call) {
+                // Coba dapatkan wifi yang sedang connect
+                window.Termux.call('termux-wifi-connectioninfo', [], function(result) {
+                    try {
+                        const info = JSON.parse(result);
+                        if (info && info.ssid) {
+                            addLog(`📋 WiFi saat ini: ${info.ssid}`);
+                            addLog(`   BSSID: ${info.bssid}`);
+                            addLog(`   Kecepatan: ${info.link_speed} Mbps`);
+                        } else {
+                            addLog(`📋 Tidak ada WiFi yang connect`);
+                        }
+                    } catch(e) {
+                        addLog(`📋 Info: ${result.substring(0, 100)}`);
+                    }
+                });
+                
+                // Coba baca file konfigurasi (butuh root)
+                window.Termux.call('cat /data/misc/wifi/wpa_supplicant.conf 2>/dev/null || echo "Butuh root"', [], function(result) {
+                    if (result && !result.includes('Butuh root')) {
+                        const networks = result.match(/ssid="([^"]+)"/g) || [];
+                        if (networks.length > 0) {
+                            addLog(`📋 Ditemukan ${networks.length} jaringan tersimpan:`);
+                            networks.slice(0, 5).forEach(net => {
+                                addLog(`   ${net.replace('ssid="', '').replace('"', '')}`);
+                            });
+                        }
+                    } else {
+                        addLog(`📋 ${result}`);
+                    }
+                });
+            } else {
+                // Simulasi
+                setTimeout(() => {
+                    addLog(`📋 Ditemukan 4 jaringan tersimpan:`);
+                    addLog(`   Rumah (WPA2)`);
+                    addLog(`   Kantor (WPA3)`);
+                    addLog(`   Cafe_Wifi (WPA2)`);
+                    addLog(`   Kos_Anu (WEP)`);
+                }, 1000);
+            }
+        }
+        
+        // ============================================================
+        // CLEANUP
+        // ============================================================
+        window.addEventListener('beforeunload', function() {
+            if (flashlightInterval) {
+                clearInterval(flashlightInterval);
+            }
+            if (wifiScanInterval) {
+                clearInterval(wifiScanInterval);
+            }
+            
+            // Matikan flashlight
+            if (window.Termux && window.Termux.call) {
+                window.Termux.call('termux-torch off', [], function() {});
+            }
+        });
+        
+        // ============================================================
+        // INIT
+        // ============================================================
+        window.onload = function() {
+            // Focus password input
+            setTimeout(() => {
+                passwordInput.focus();
+            }, 500);
+            
+            addLog('🔐 Masukkan password "Rat" untuk login');
+        };
+    </script>
+</body>
+</html>
